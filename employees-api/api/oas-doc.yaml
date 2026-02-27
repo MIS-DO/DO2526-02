@@ -1,0 +1,167 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Employees API
+  description: Generated with OAS TOOLS CLI
+
+paths:
+  /api/v1/employees:
+    get:
+      description: Returns all employees
+      operationId: getEmployees
+      responses:
+        200:
+          description: Employee list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/employee"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+    post:
+      description: Creates a new employee
+      operationId: addEmployee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/employee"
+        description: Employee to be created
+        required: true
+      responses:
+        201:
+          description: Employee
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+  /api/v1/employees/{id}:
+    get:
+      description: Returns a single employee by its id
+      operationId: findByid
+      parameters:
+        - required: true
+          name: id
+          description: id of the employee to fetch
+          in: path
+          schema:
+            type: number
+      responses:
+        200:
+          description: Employee found by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/employee"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+    put:
+      description: Update a employee based on its id
+      operationId: updateEmployee
+      parameters:
+        - required: true
+          name: id
+          description: id of the employee to update
+          in: path
+          schema:
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/employee"
+        description: Employee to be updated
+        required: true
+      responses:
+        204:
+          description: Employee updated
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+    delete:
+      description: Deletes a single employee based on its id
+      operationId: deleteEmployee
+      parameters:
+        - required: true
+          name: id
+          description: id of the employee to delete
+          in: path
+          schema:
+            type: number
+      responses:
+        204:
+          description: Employee deleted
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+
+components:
+  schemas:
+    employee:
+      type: object
+      required:
+        - id
+        - fullName
+        - email
+        - salary
+        - teleworking
+      properties:
+        id:
+          type: number
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        salary:
+          type: number
+        hireDate:
+          type: string
+          format: date
+        teleworking:
+          type: boolean
+        spokenLanguages:
+          type: array
+          items:
+            type: string
+        performance:
+          $ref: "#/components/schemas/performance"
+
+    performance:
+      type: object
+      required:
+        - lastRating
+        - reviewDate
+      properties:
+        lastRating:
+          type: number
+        reviewDate:
+          type: string
+          format: date
+
+    error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      additionalProperties: true

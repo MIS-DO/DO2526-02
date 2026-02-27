@@ -1,0 +1,18 @@
+{
+  "name": "flights-api",
+  "version": "1.0.0",
+  "description": "API for flights",
+  "license": "UNLICENSED",
+  "type": "module",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@oas-tools/core": "^3.0.0",
+    "express": "^4.18.0",
+    "mongodb": "^6.12.0",
+    "winston": "^3.19.0"
+  }
+}

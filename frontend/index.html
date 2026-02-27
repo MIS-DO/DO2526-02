@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel de gestión unificado para las APIs de Employees, Flights y SpaceMissions">
+    <title>DO2526-02 | API Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header" id="main-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🚀</span>
+                    <div>
+                        <h1>DO2526-02</h1>
+                        <p class="subtitle">Unified API Dashboard</p>
+                    </div>
+                </div>
+                <div class="header-links">
+                    <a href="http://localhost:8001/docs" target="_blank" class="swagger-link" id="swagger-employees">📄 Swagger Employees</a>
+                    <a href="http://localhost:8002/docs" target="_blank" class="swagger-link" id="swagger-flights">📄 Swagger Flights</a>
+                    <a href="http://localhost:8003/docs" target="_blank" class="swagger-link" id="swagger-spacemissions">📄 Swagger SpaceMissions</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav" id="tab-navigation">
+            <button class="tab-btn active" data-tab="employees" id="tab-employees">
+                <span class="tab-icon">👥</span>
+                <span>Employees</span>
+                <span class="tab-count" id="count-employees">0</span>
+            </button>
+            <button class="tab-btn" data-tab="flights" id="tab-flights">
+                <span class="tab-icon">✈️</span>
+                <span>Flights</span>
+                <span class="tab-count" id="count-flights">0</span>
+            </button>
+            <button class="tab-btn" data-tab="spacemissions" id="tab-spacemissions">
+                <span class="tab-icon">🛸</span>
+                <span>SpaceMissions</span>
+                <span class="tab-count" id="count-spacemissions">0</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Employees Section -->
+            <section class="tab-content active" id="section-employees">
+                <div class="section-header">
+                    <h2>👥 Gestión de Empleados</h2>
+                    <button class="btn-primary" onclick="openModal('employees')" id="btn-create-employee">+ Nuevo Empleado</button>
+                </div>
+                <div class="cards-grid" id="employees-grid">
+                    <div class="loading">Cargando empleados...</div>
+                </div>
+            </section>
+
+            <!-- Flights Section -->
+            <section class="tab-content" id="section-flights">
+                <div class="section-header">
+                    <h2>✈️ Gestión de Vuelos</h2>
+                    <button class="btn-primary" onclick="openModal('flights')" id="btn-create-flight">+ Nuevo Vuelo</button>
+                </div>
+                <div class="cards-grid" id="flights-grid">
+                    <div class="loading">Cargando vuelos...</div>
+                </div>
+            </section>
+
+            <!-- SpaceMissions Section -->
+            <section class="tab-content" id="section-spacemissions">
+                <div class="section-header">
+                    <h2>🛸 Gestión de Misiones Espaciales</h2>
+                    <button class="btn-primary" onclick="openModal('spacemissions')" id="btn-create-spacemission">+ Nueva Misión</button>
+                </div>
+                <div class="cards-grid" id="spacemissions-grid">
+                    <div class="loading">Cargando misiones...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modal-title">Crear</h2>
+                <button class="modal-close" onclick="closeModal()" id="btn-close-modal">&times;</button>
+            </div>
+            <form id="modal-form" onsubmit="handleSubmit(event)">
+                <div id="modal-fields"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btn-submit-modal">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "employees-api",
+  "version": "1.0.0",
+  "description": "Employees API with OAS Tools",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@oas-tools/core": "^3.1.0",
+    "express": "^4.21.0",
+    "mongodb": "^6.3.0",
+    "winston": "^3.19.0"
+  }
+}
