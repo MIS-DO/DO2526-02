@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header -->
@@ -23,9 +25,12 @@
                     </div>
                 </div>
                 <div class="header-links">
-                    <a href="http://localhost:8001/docs" target="_blank" class="swagger-link" id="swagger-employees">📄 Swagger Employees</a>
-                    <a href="http://localhost:8002/docs" target="_blank" class="swagger-link" id="swagger-flights">📄 Swagger Flights</a>
-                    <a href="http://localhost:8003/docs" target="_blank" class="swagger-link" id="swagger-spacemissions">📄 Swagger SpaceMissions</a>
+                    <a href="http://localhost:8001/docs" target="_blank" class="swagger-link" id="swagger-employees">📄
+                        Swagger Employees</a>
+                    <a href="http://localhost:8002/docs" target="_blank" class="swagger-link" id="swagger-flights">📄
+                        Swagger Flights</a>
+                    <a href="http://localhost:8003/docs" target="_blank" class="swagger-link"
+                        id="swagger-spacemissions">📄 Swagger SpaceMissions</a>
                 </div>
             </div>
         </header>
@@ -47,6 +52,10 @@
                 <span>SpaceMissions</span>
                 <span class="tab-count" id="count-spacemissions">0</span>
             </button>
+            <button class="tab-btn" data-tab="search" id="tab-search">
+                <span class="tab-icon">🔍</span>
+                <span>Búsqueda Multi-API</span>
+            </button>
         </nav>
 
         <!-- Main Content -->
@@ -55,7 +64,8 @@
             <section class="tab-content active" id="section-employees">
                 <div class="section-header">
                     <h2>👥 Gestión de Empleados</h2>
-                    <button class="btn-primary" onclick="openModal('employees')" id="btn-create-employee">+ Nuevo Empleado</button>
+                    <button class="btn-primary" onclick="openModal('employees')" id="btn-create-employee">+ Nuevo
+                        Empleado</button>
                 </div>
                 <div class="cards-grid" id="employees-grid">
                     <div class="loading">Cargando empleados...</div>
@@ -66,7 +76,8 @@
             <section class="tab-content" id="section-flights">
                 <div class="section-header">
                     <h2>✈️ Gestión de Vuelos</h2>
-                    <button class="btn-primary" onclick="openModal('flights')" id="btn-create-flight">+ Nuevo Vuelo</button>
+                    <button class="btn-primary" onclick="openModal('flights')" id="btn-create-flight">+ Nuevo
+                        Vuelo</button>
                 </div>
                 <div class="cards-grid" id="flights-grid">
                     <div class="loading">Cargando vuelos...</div>
@@ -77,10 +88,33 @@
             <section class="tab-content" id="section-spacemissions">
                 <div class="section-header">
                     <h2>🛸 Gestión de Misiones Espaciales</h2>
-                    <button class="btn-primary" onclick="openModal('spacemissions')" id="btn-create-spacemission">+ Nueva Misión</button>
+                    <button class="btn-primary" onclick="openModal('spacemissions')" id="btn-create-spacemission">+
+                        Nueva Misión</button>
                 </div>
                 <div class="cards-grid" id="spacemissions-grid">
                     <div class="loading">Cargando misiones...</div>
+                </div>
+            </section>
+
+            <!-- Search Section -->
+            <section class="tab-content" id="section-search">
+                <div class="section-header">
+                    <h2>🔍 Búsqueda Global por Ciudad</h2>
+                </div>
+
+                <form class="search-form" id="search-form" onsubmit="handleSearch(event)">
+                    <input type="text" id="search-input" placeholder="Ej. Madrid, Barcelona, Paris..." required>
+                    <button type="submit" class="btn-primary" id="btn-search">Buscar en las 3 APIs</button>
+                    <button type="button" class="btn-secondary" id="btn-clear-search" onclick="clearSearch()"
+                        style="flex: 0 1 auto;">Limpiar</button>
+                </form>
+
+                <div id="search-results-container">
+                    <div class="empty-state">
+                        <h3>Indica una ciudad para buscar</h3>
+                        <p>Buscaremos empleados radicados ahí, vuelos que salgan/lleguen, y misiones lanzadas desde ahí.
+                        </p>
+                    </div>
                 </div>
             </section>
         </main>
@@ -108,4 +142,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>

@@ -2,7 +2,9 @@ import { MongoClient } from "mongodb";
 import logger from "./logger.js";
 
 const url = process.env.MONGODB_URI || "mongodb://localhost:27017";
-const dbName = "employees";
+const dbName = process.env.DB_NAME || "do2526";
+
+const collectionName = "employees";
 
 const client = new MongoClient(url);
 
@@ -15,7 +17,7 @@ export async function connect() {
   }
   try {
     await client.connect();
-    _collection = client.db(dbName).collection(dbName);
+    _collection = client.db(dbName).collection(collectionName);
     logger.info("Connected to MongoDB");
     return _collection;
   } catch (err) {
@@ -39,6 +41,7 @@ export async function init() {
       email: "carlos.ruiz@company.com",
       salary: 45000,
       hireDate: "2022-03-15",
+      city: "Madrid",
       teleworking: true,
       spokenLanguages: ["Spanish", "English"],
       performance: { lastRating: 4, reviewDate: "2024-12-01" },
@@ -49,6 +52,7 @@ export async function init() {
       email: "ana.garcia@company.com",
       salary: 52000,
       hireDate: "2021-06-01",
+      city: "Barcelona",
       teleworking: false,
       spokenLanguages: ["Spanish", "French"],
       performance: { lastRating: 5, reviewDate: "2024-11-15" },

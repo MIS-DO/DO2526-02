@@ -122,6 +122,7 @@ components:
         - fullName
         - email
         - salary
+        - city
         - teleworking
       properties:
         id:
@@ -136,6 +137,8 @@ components:
         hireDate:
           type: string
           format: date
+        city:
+          type: string
         teleworking:
           type: boolean
         spokenLanguages:

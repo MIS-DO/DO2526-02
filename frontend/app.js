@@ -1,3 +1,21 @@
+// helpers for nested properties
+function getNested(obj, path) {
+  if (!obj) return '';
+  return path.split('.').reduce((o, i) => (o ? o[i] : ''), obj) || '';
+}
+
+function setNested(obj, path, value) {
+  if (value === undefined) return;
+  const parts = path.split('.');
+  const last = parts.pop();
+  let current = obj;
+  parts.forEach(part => {
+    if (!current[part]) current[part] = {};
+    current = current[part];
+  });
+  current[last] = value;
+}
+
 // ===== API Configuration =====
 const API_CONFIG = {
   employees: {
@@ -10,6 +28,7 @@ const API_CONFIG = {
       { key: 'email', label: 'Email', type: 'email', required: true },
       { key: 'salary', label: 'Salario', type: 'number', required: true },
       { key: 'hireDate', label: 'Fecha contrato', type: 'date' },
+      { key: 'city', label: 'Ciudad', type: 'text' },
       { key: 'teleworking', label: 'Teletrabajo', type: 'checkbox' },
       { key: 'spokenLanguages', label: 'Idiomas (separados por coma)', type: 'text', isArray: true },
     ],
@@ -22,9 +41,17 @@ const API_CONFIG = {
       { key: 'id', label: 'ID', type: 'number', required: true, readOnlyOnEdit: true },
       { key: 'flightNumber', label: 'Nº Vuelo', type: 'text', required: true },
       { key: 'airline', label: 'Aerolínea', type: 'text', required: true },
+      { key: 'departure.city', label: 'Origen (Ciudad)', type: 'text', required: true },
+      { key: 'departure.airport', label: 'Origen (Aeropuerto)', type: 'text' },
+      { key: 'departure.dateTime', label: 'Fecha/Hora Salida', type: 'text' },
+      { key: 'arrival.city', label: 'Destino (Ciudad)', type: 'text', required: true },
+      { key: 'arrival.airport', label: 'Destino (Aeropuerto)', type: 'text' },
+      { key: 'arrival.dateTime', label: 'Fecha/Hora Llegada', type: 'text' },
       { key: 'aircraft', label: 'Avión', type: 'text' },
       { key: 'seatCapacity', label: 'Capacidad', type: 'number' },
       { key: 'seatsAvailable', label: 'Asientos disponibles', type: 'number' },
+      { key: 'price.amount', label: 'Precio', type: 'number' },
+      { key: 'price.currency', label: 'Moneda (EUR/USD...)', type: 'text' },
       { key: 'hasWifi', label: 'WiFi', type: 'checkbox' },
     ],
   },
@@ -36,6 +63,16 @@ const API_CONFIG = {
       { key: 'id', label: 'ID', type: 'number', required: true, readOnlyOnEdit: true },
       { key: 'missionName', label: 'Nombre de misión', type: 'text', required: true },
       { key: 'status', label: 'Estado', type: 'select', options: ['planned', 'active', 'completed', 'cancelled'] },
+      { key: 'target.planet', label: 'Planeta destino', type: 'text' },
+      { key: 'target.region', label: 'Región objetivo', type: 'text' },
+      { key: 'launch.year', label: 'Año de lanzamiento', type: 'number' },
+      { key: 'launch.location', label: 'Centro de lanzamiento', type: 'text' },
+      { key: 'launch.city', label: 'Ciudad de lanzamiento (Para búsqueda Global)', type: 'text', required: true },
+      { key: 'crew.isManned', label: 'Misión tripulada', type: 'checkbox' },
+      { key: 'crew.capacity', label: 'Capacidad de tripulación', type: 'number' },
+      { key: 'crew.requiresLifeSupport', label: 'Soporte vital', type: 'checkbox' },
+      { key: 'financials.estimatedBudget', label: 'Presupuesto Estimado', type: 'number' },
+      { key: 'financials.currency', label: 'Moneda (USD/EUR...)', type: 'text' },
     ],
   },
 };
@@ -131,7 +168,7 @@ function renderEmployeeCard(e) {
         </span>
       </div>
       <div class="card-details">
-        <div class="detail"><div class="detail-label">Email</div><div class="detail-value">${e.email || 'N/A'}</div></div>
+        <div class="detail"><div class="detail-label">Ciudad</div><div class="detail-value">${e.city || 'N/A'}</div></div>
         <div class="detail"><div class="detail-label">Salario</div><div class="detail-value">${salary}</div></div>
         <div class="detail"><div class="detail-label">Contrato</div><div class="detail-value">${e.hireDate || 'N/A'}</div></div>
         <div class="detail"><div class="detail-label">Rating</div><div class="detail-value">${rating}</div></div>
@@ -194,6 +231,7 @@ function renderSpaceMissionCard(m) {
         <span class="card-badge badge-status">${m.status || 'unknown'}</span>
       </div>
       <div class="card-details">
+        <div class="detail"><div class="detail-label">Origen (Ciudad)</div><div class="detail-value">${launch.city || 'N/A'}</div></div>
         <div class="detail"><div class="detail-label">Destino</div><div class="detail-value">${target.planet || 'N/A'} ${target.region ? '(' + target.region + ')' : ''}</div></div>
         <div class="detail"><div class="detail-label">Lanzamiento</div><div class="detail-value">${launch.year || 'N/A'} — ${launch.location || ''}</div></div>
         <div class="detail"><div class="detail-label">Tripulación</div><div class="detail-value">${crew.isManned ? 'Tripulada (' + (crew.capacity || '?') + ')' : 'No tripulada'}</div></div>
@@ -237,12 +275,13 @@ function renderFormFields(type, item) {
   let html = '';
 
   config.fields.forEach(field => {
-    const value = item ? (field.isArray && Array.isArray(item[field.key]) ? item[field.key].join(', ') : item[field.key]) : '';
+    let rawVal = getNested(item, field.key);
+    const value = item ? (field.isArray && Array.isArray(rawVal) ? rawVal.join(', ') : rawVal) : '';
     const disabled = field.readOnlyOnEdit && item ? 'disabled' : '';
     const required = field.required ? 'required' : '';
 
     if (field.type === 'checkbox') {
-      const checked = item && item[field.key] ? 'checked' : '';
+      const checked = item && getNested(item, field.key) ? 'checked' : '';
       html += `
         <div class="form-group">
           <div class="checkbox-group">
@@ -281,19 +320,20 @@ async function handleSubmit(event) {
   config.fields.forEach(field => {
     const el = document.getElementById(`field-${field.key}`);
     if (!el) return;
-    if (field.type === 'checkbox') {
-      formData[field.key] = el.checked;
-    } else if (field.type === 'number') {
-      formData[field.key] = el.value !== '' ? Number(el.value) : undefined;
-    } else if (field.isArray) {
-      formData[field.key] = el.value ? el.value.split(',').map(s => s.trim()).filter(Boolean) : [];
-    } else {
-      formData[field.key] = el.value || undefined;
-    }
-  });
 
-  // Remove undefined values
-  Object.keys(formData).forEach(k => { if (formData[k] === undefined) delete formData[k]; });
+    let valueToSet;
+    if (field.type === 'checkbox') {
+      valueToSet = el.checked;
+    } else if (field.type === 'number') {
+      valueToSet = el.value !== '' ? Number(el.value) : undefined;
+    } else if (field.isArray) {
+      valueToSet = el.value ? el.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+    } else {
+      valueToSet = el.value || undefined;
+    }
+
+    setNested(formData, field.key, valueToSet);
+  });
 
   try {
     let res;
@@ -346,6 +386,77 @@ async function deleteItem(type, id) {
   } catch (err) {
     showToast('Error de conexión: ' + err.message, 'error');
   }
+}
+
+// ===== Search Logic =====
+async function handleSearch(event) {
+  event.preventDefault();
+  const input = document.getElementById('search-input');
+  const city = input.value.trim();
+  if (!city) return;
+
+  const container = document.getElementById('search-results-container');
+  container.innerHTML = '<div class="loading">Buscando...</div>';
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/v1/search?city=${encodeURIComponent(city)}`);
+    if (!res.ok) throw new Error("Error en la búsqueda");
+    const data = await res.json();
+    renderSearchResults(data.results, city);
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><h3>Error</h3><p>${err.message}</p></div>`;
+  }
+}
+
+function clearSearch() {
+  const input = document.getElementById('search-input');
+  input.value = '';
+  const container = document.getElementById('search-results-container');
+  container.innerHTML = `
+    <div class="empty-state">
+        <h3>Indica una ciudad para buscar</h3>
+        <p>Buscaremos empleados radicados ahí, vuelos que salgan/lleguen, y misiones lanzadas desde ahí.</p>
+    </div>
+  `;
+}
+
+function renderSearchResults(results, city) {
+  const container = document.getElementById('search-results-container');
+  let html = '';
+
+  const { employees, flights, spacemissions } = results;
+
+  if (employees.length === 0 && flights.length === 0 && spacemissions.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>Sin resultados</h3>
+        <p>No se encontraron datos que coincidan con la ciudad '${city}'.</p>
+      </div>`;
+    return;
+  }
+
+  if (employees.length > 0) {
+    html += `<h3 class="search-category-title">👥 Empleados en ${city} (${employees.length})</h3>`;
+    html += `<div class="cards-grid">`;
+    html += employees.map(renderEmployeeCard).join('');
+    html += `</div>`;
+  }
+
+  if (flights.length > 0) {
+    html += `<h3 class="search-category-title">✈️ Vuelos relacionados con ${city} (${flights.length})</h3>`;
+    html += `<div class="cards-grid">`;
+    html += flights.map(renderFlightCard).join('');
+    html += `</div>`;
+  }
+
+  if (spacemissions.length > 0) {
+    html += `<h3 class="search-category-title">🛸 Misiones espaciales desde ${city} (${spacemissions.length})</h3>`;
+    html += `<div class="cards-grid">`;
+    html += spacemissions.map(renderSpaceMissionCard).join('');
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 // ===== Toast =====

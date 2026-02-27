@@ -1,100 +1,86 @@
 services:
-  # ============================================
-  # Employees API (rgavira123)
-  # ============================================
+  mongo:
+    image: mongo:6.0
+    container_name: mongo-unified
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
   employees-api:
     build: ./employees-api
     container_name: employees-api
     ports:
       - "8001:8080"
     environment:
-      - MONGODB_URI=mongodb://mongo-employees:27017
+      - MONGODB_URI=mongodb://mongo:27017
+      - DB_NAME=do2526
       - PORT=8080
       - NODE_ENV=development
     depends_on:
-      mongo-employees:
+      mongo:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
 
-  mongo-employees:
-    image: mongo:6.0
-    container_name: mongo-employees
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - app-network
-
-  # ============================================
-  # Flights API (rafpulcif)
-  # ============================================
   flights-api:
     build: ./flights-api
     container_name: flights-api
     ports:
       - "8002:8080"
     environment:
-      - MONGODB_URI=mongodb://mongo-flights:27017
+      - MONGODB_URI=mongodb://mongo:27017
+      - DB_NAME=do2526
       - PORT=8080
       - NODE_ENV=development
     depends_on:
-      mongo-flights:
+      mongo:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
 
-  mongo-flights:
-    image: mongo:6.0
-    container_name: mongo-flights
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - app-network
-
-  # ============================================
-  # SpaceMissions API (Danielruizlopezcc)
-  # ============================================
   spacemissions-api:
     build: ./spacemissions-api
     container_name: spacemissions-api
     ports:
       - "8003:8080"
     environment:
-      - MONGODB_URI=mongodb://mongo-spacemissions:27017
+      - MONGODB_URI=mongodb://mongo:27017
+      - DB_NAME=do2526
       - PORT=8080
       - NODE_ENV=development
     depends_on:
-      mongo-spacemissions:
+      mongo:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
 
-  mongo-spacemissions:
-    image: mongo:6.0
-    container_name: mongo-spacemissions
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+  search-api:
+    build: ./search-api
+    container_name: search-api
+    ports:
+      - "8004:8080"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - DB_NAME=do2526
+      - PORT=8080
+      - NODE_ENV=development
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - app-network
 
-  # ============================================
-  # Frontend Unificado
-  # ============================================
   frontend:
     build: ./frontend
     container_name: frontend
@@ -104,6 +90,7 @@ services:
       - employees-api
       - flights-api
       - spacemissions-api
+      - search-api
     restart: unless-stopped
     networks:
       - app-network

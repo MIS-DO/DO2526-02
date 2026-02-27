@@ -6,7 +6,8 @@ import logger from "../logger.js";
 
 const url = process.env.MONGODB_URI || "mongodb://mongo:27017";
 
-const dbName = "flights";
+const dbName = process.env.DB_NAME || "do2526";
+const collectionName = "flights";
 
 const client = new MongoClient(url);
 
@@ -19,7 +20,7 @@ async function connect() {
   }
   try {
     await client.connect();
-    _collection = client.db(dbName).collection(dbName);
+    _collection = client.db(dbName).collection(collectionName);
     return _collection;
   } catch (err) {
     logger.error("Error connecting to DB!", err);
