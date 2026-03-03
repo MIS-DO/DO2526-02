@@ -19,7 +19,7 @@ function setNested(obj, path, value) {
 // ===== API Configuration =====
 const API_CONFIG = {
   employees: {
-    baseUrl: 'http://localhost:8001/api/v1/employees',
+    baseUrl: '/api/v1/employees',
     name: 'Empleado',
     icon: '👥',
     fields: [
@@ -34,7 +34,7 @@ const API_CONFIG = {
     ],
   },
   flights: {
-    baseUrl: 'http://localhost:8002/api/v1/flight',
+    baseUrl: '/api/v1/flight',
     name: 'Vuelo',
     icon: '✈️',
     fields: [
@@ -56,7 +56,7 @@ const API_CONFIG = {
     ],
   },
   spacemissions: {
-    baseUrl: 'http://localhost:8003/api/v1/spacemissions',
+    baseUrl: '/api/v1/spacemissions',
     name: 'Misión Espacial',
     icon: '🛸',
     fields: [
@@ -399,7 +399,7 @@ async function handleSearch(event) {
   container.innerHTML = '<div class="loading">Buscando...</div>';
 
   try {
-    const res = await fetch(`http://localhost:3000/api/v1/search?city=${encodeURIComponent(city)}`);
+    const res = await fetch(`/api/v1/search?city=${encodeURIComponent(city)}`);
     if (!res.ok) throw new Error("Error en la búsqueda");
     const data = await res.json();
     renderSearchResults(data.results, city);
