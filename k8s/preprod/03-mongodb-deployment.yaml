@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  namespace: preprod
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-pod
+  template:
+    metadata:
+      labels:
+        app: mongodb-pod
+    spec:
+      containers:
+        - name: mongodb-container
+          image: mongo:6.0
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodb
+      volumes:
+        - name: mongodb
+          emptyDir: {}
+      restartPolicy: Always

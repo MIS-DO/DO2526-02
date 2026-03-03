@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spacemissions-api-deployment
+  namespace: preprod
+  labels:
+    app: spacemissions-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spacemissions-api-pod
+  template:
+    metadata:
+      labels:
+        app: spacemissions-api-pod
+    spec:
+      containers:
+        - name: spacemissions-api-container
+          image: DOCKER_USER/spacemissions-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGODB_URI
+              value: mongodb://mongodb-service:27017
+            - name: DB_NAME
+              value: do2526
+            - name: PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: development
+      restartPolicy: Always

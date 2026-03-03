@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employees-api-deployment
+  namespace: preprod
+  labels:
+    app: employees-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employees-api-pod
+  template:
+    metadata:
+      labels:
+        app: employees-api-pod
+    spec:
+      containers:
+        - name: employees-api-container
+          image: DOCKER_USER/employees-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGODB_URI
+              value: mongodb://mongodb-service:27017
+            - name: DB_NAME
+              value: do2526
+            - name: PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: development
+      restartPolicy: Always
