@@ -1,6 +1,6 @@
 # DO2526-02 — Despliegue Unificado de Microservicios
 
-Integración de las APIs del grupo en un despliegue unificado con Docker Compose.
+Integración de las APIs del grupo en un despliegue unificado con Docker Compose y Kubernetes.
 
 ## Microservicios incluidos
 
@@ -15,56 +15,73 @@ Integración de las APIs del grupo en un despliegue unificado con Docker Compose
 ## Requisitos
 
 - Docker y Docker Compose
+- Kubernetes (Docker Desktop o similar) + kubectl — solo para despliegue en K8s
+- Cuenta en Docker Hub — solo para despliegue en K8s
 
-## Despliegue local
+---
+
+## Despliegue local con Docker Compose
 
 ```bash
-# Construir y arrancar todos los servicios
 docker-compose up --build -d
-
-# Ver logs
 docker-compose logs -f
-
-# Parar
 docker-compose down
 ```
 
-## Estructura del proyecto
+---
+
+## Despliegue en Kubernetes
+
+Dos entornos independientes desplegados en namespaces separados:
+
+| Entorno | URL |
+|---|---|
+| Producción | http://localhost:30080 |
+| Preproducción | http://localhost:30081 |
+
+### Configuración previa
+
+Editar `k8s/Makefile` y establecer el usuario de Docker Hub:
+
+```makefile
+DOCKER_USER = tu-usuario-dockerhub
+```
+
+### Comandos
+
+```bash
+cd k8s/
+
+make push-all          # Construir y subir imágenes a Docker Hub
+make deploy-all        # Desplegar ambos entornos
+make status-all        # Ver estado de los pods y servicios
+make logs-production   # Ver logs del entorno de producción
+make logs-preprod      # Ver logs del entorno de preproducción
+make clean-all         # Eliminar ambos entornos
+```
+
+### Estructura de manifests
 
 ```
-DO2526-02/
-├── docker-compose.yml          # Orquestación de todos los servicios
-├── employees-api/              # API de Empleados (rgavira123)
-│   ├── index.js
-│   ├── db.js
-│   ├── logger.js
-│   ├── controllers/
-│   ├── services/
-│   ├── api/oas-doc.yaml
-│   ├── Dockerfile
-│   └── package.json
-├── flights-api/                # API de Vuelos (rafpulcif)
-│   ├── index.js
-│   ├── data/db.js
-│   ├── logger.js
-│   ├── controllers/
-│   ├── services/
-│   ├── api/oas-doc.yaml
-│   ├── Dockerfile
-│   └── package.json
-├── spacemissions-api/          # API de Misiones Espaciales (Danielruizlopezcc)
-│   ├── index.js
-│   ├── db.js
-│   ├── logger.js
-│   ├── controllers/
-│   ├── services/
-│   ├── api/oas-doc.yaml
-│   ├── Dockerfile
-│   └── package.json
-└── frontend/                   # Frontend unificado
-    ├── index.html
-    ├── app.js
-    ├── styles.css
-    ├── nginx.conf
-    └── Dockerfile
+k8s/
+├── Makefile
+├── production/        # Namespace: production — NodePort 30080
+│   ├── 00-namespace.yaml
+│   ├── 01-mongodb-pv.yaml
+│   ├── 02-mongodb-pvc.yaml
+│   ├── 03-mongodb-deployment.yaml
+│   ├── 04-mongodb-service.yaml
+│   ├── 05-employees-api-deployment.yaml
+│   ├── 06-employees-api-service.yaml
+│   ├── 07-flights-api-deployment.yaml
+│   ├── 08-flights-api-service.yaml
+│   ├── 09-spacemissions-api-deployment.yaml
+│   ├── 10-spacemissions-api-service.yaml
+│   ├── 11-search-api-deployment.yaml
+│   ├── 12-search-api-service.yaml
+│   ├── 13-frontend-configmap.yaml
+│   ├── 14-frontend-deployment.yaml
+│   └── 15-frontend-service.yaml
+└── preprod/           # Namespace: preprod — NodePort 30081
+    └── (misma estructura)
 ```
