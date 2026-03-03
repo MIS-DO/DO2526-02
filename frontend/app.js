@@ -31,6 +31,8 @@ const API_CONFIG = {
       { key: 'city', label: 'Ciudad', type: 'text' },
       { key: 'teleworking', label: 'Teletrabajo', type: 'checkbox' },
       { key: 'spokenLanguages', label: 'Idiomas (separados por coma)', type: 'text', isArray: true },
+      { key: 'performance.lastRating', label: 'Rating (1-5) ⭐', type: 'select', options: [1, 2, 3, 4, 5], optionLabels: ['1 - Necesita mejorar', '2 - Por debajo', '3 - Cumple expectativas', '4 - Supera expectativas', '5 - Excelente'] },
+      { key: 'performance.reviewDate', label: 'Fecha revisión', type: 'date' },
     ],
   },
   flights: {
@@ -290,7 +292,11 @@ function renderFormFields(type, item) {
           </div>
         </div>`;
     } else if (field.type === 'select') {
-      const options = field.options.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('');
+      const options = field.options.map((o, i) => {
+        const label = field.optionLabels ? field.optionLabels[i] : o;
+        const selected = value != null && value != '' && value == o ? 'selected' : '';
+        return `<option value="${o}" ${selected}>${label}</option>`;
+      }).join('');
       html += `
         <div class="form-group">
           <label for="field-${field.key}">${field.label}</label>
@@ -328,6 +334,14 @@ async function handleSubmit(event) {
       valueToSet = el.value !== '' ? Number(el.value) : undefined;
     } else if (field.isArray) {
       valueToSet = el.value ? el.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+    } else if (field.type === 'select') {
+      if (el.value === '') {
+        valueToSet = undefined;
+      } else if (field.options && typeof field.options[0] === 'number') {
+        valueToSet = Number(el.value);
+      } else {
+        valueToSet = el.value;
+      }
     } else {
       valueToSet = el.value || undefined;
     }
