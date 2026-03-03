@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-api-deployment
+  namespace: production
+  labels:
+    app: search-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-api-pod
+  template:
+    metadata:
+      labels:
+        app: search-api-pod
+    spec:
+      containers:
+        - name: search-api-container
+          image: DOCKER_USER/search-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGODB_URI
+              value: mongodb://mongodb-service:27017
+            - name: DB_NAME
+              value: do2526
+            - name: PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: production
+      restartPolicy: Always
