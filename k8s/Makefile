@@ -1,27 +1,29 @@
 .PHONY: help build-all push-all \
+        deploy-ingress-controller \
         deploy-production deploy-preprod deploy-all \
         status-production status-preprod status-all \
         logs-production logs-preprod \
+        deploy-portainer portainer-url clean-portainer \
         clean-production clean-preprod clean-all
 
 # ─── Edita esta variable una sola vez ─────────────────────────────────────────
 DOCKER_USER  = rafapulido03
 # ──────────────────────────────────────────────────────────────────────────────
 
-PROD_PORT    = 30080
-PREPROD_PORT = 30081
+INGRESS_CONTROLLER_URL = https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/cloud/deploy.yaml
 
 help:
 	@echo "Despliegue de DO2526-02 en Kubernetes - Dos entornos"
 	@echo ""
 	@echo "Construccion:"
-	@echo "  make build-all               - Construir todas las imagenes Docker"
-	@echo "  make push-all                - Subir todas las imagenes a Docker Hub"
+	@echo "  make build-all                   - Construir todas las imagenes Docker"
+	@echo "  make push-all                    - Subir todas las imagenes a Docker Hub"
 	@echo ""
-	@echo "Despliegue:"
-	@echo "  make deploy-production       - Desplegar entorno de produccion"
-	@echo "  make deploy-preprod          - Desplegar entorno de preproduccion"
-	@echo "  make deploy-all              - Desplegar ambos entornos"
+	@echo "Despliegue (primera vez: instalar el controlador primero):"
+	@echo "  make deploy-ingress-controller   - Instalar nginx Ingress Controller"
+	@echo "  make deploy-production           - Desplegar entorno de produccion"
+	@echo "  make deploy-preprod              - Desplegar entorno de preproduccion"
+	@echo "  make deploy-all                  - Desplegar ambos entornos"
 	@echo ""
 	@echo "Estado:"
 	@echo "  make status-production"
@@ -32,14 +34,20 @@ help:
 	@echo "  make logs-production"
 	@echo "  make logs-preprod"
 	@echo ""
+	@echo "Portainer:"
+	@echo "  make deploy-portainer            - Instalar Portainer"
+	@echo "  make portainer-url               - Mostrar URL de Portainer"
+	@echo "  make clean-portainer             - Eliminar Portainer"
+	@echo ""
 	@echo "Limpieza:"
 	@echo "  make clean-production"
 	@echo "  make clean-preprod"
 	@echo "  make clean-all"
 	@echo ""
-	@echo "URLs de acceso:"
-	@echo "  Produccion:    http://localhost:$(PROD_PORT)"
-	@echo "  Preproduccion: http://localhost:$(PREPROD_PORT)"
+	@echo "URLs de acceso (requiere /etc/hosts en local):"
+	@echo "  Produccion:    http://production.localhost"
+	@echo "  Preproduccion: http://preprod.localhost"
+	@echo "  Portainer:     http://portainer.localhost"
 	@echo ""
 	@echo "Docker Hub: $(DOCKER_USER)"
 
@@ -65,6 +73,22 @@ push-all: build-all
 	docker push $(DOCKER_USER)/do2526-frontend:latest
 	@echo "Todas las imagenes subidas."
 
+# ─── Ingress Controller ───────────────────────────────────────────────────────
+
+deploy-ingress-controller:
+	@echo "=== Instalando nginx Ingress Controller ==="
+	kubectl apply -f $(INGRESS_CONTROLLER_URL)
+	@echo ""
+	@echo "Esperando a que el controlador este listo..."
+	kubectl wait --namespace ingress-nginx \
+		--for=condition=ready pod \
+		--selector=app.kubernetes.io/component=controller \
+		--timeout=120s
+	@echo "Ingress Controller listo."
+	@echo ""
+	@echo "Recuerda añadir a /etc/hosts:"
+	@echo "  127.0.0.1 production.localhost preprod.localhost portainer.localhost"
+
 # ─── Deploy ───────────────────────────────────────────────────────────────────
 
 deploy-production:
@@ -73,7 +97,7 @@ deploy-production:
 		sed "s|DOCKER_USER|$(DOCKER_USER)|g" $$f | kubectl apply -f -; \
 	done
 	@echo ""
-	@echo "Produccion desplegada. Acceso en: http://localhost:$(PROD_PORT)"
+	@echo "Produccion desplegada. Acceso en: http://production.localhost"
 	@echo "Comprueba el estado con: make status-production"
 
 deploy-preprod:
@@ -82,14 +106,14 @@ deploy-preprod:
 		sed "s|DOCKER_USER|$(DOCKER_USER)|g" $$f | kubectl apply -f -; \
 	done
 	@echo ""
-	@echo "Preproduccion desplegada. Acceso en: http://localhost:$(PREPROD_PORT)"
+	@echo "Preproduccion desplegada. Acceso en: http://preprod.localhost"
 	@echo "Comprueba el estado con: make status-preprod"
 
 deploy-all: deploy-production deploy-preprod
 	@echo ""
 	@echo "=== Ambos entornos desplegados ==="
-	@echo "  Produccion:    http://localhost:$(PROD_PORT)"
-	@echo "  Preproduccion: http://localhost:$(PREPROD_PORT)"
+	@echo "  Produccion:    http://production.localhost"
+	@echo "  Preproduccion: http://preprod.localhost"
 
 # ─── Status ───────────────────────────────────────────────────────────────────
 
@@ -101,6 +125,8 @@ status-production:
 	kubectl get services -n production
 	@echo "--- Deployments ---"
 	kubectl get deployments -n production
+	@echo "--- Ingress ---"
+	kubectl get ingress -n production
 	@echo "--- PV / PVC ---"
 	kubectl get pv mongodb-pv-production 2>/dev/null; kubectl get pvc -n production
 
@@ -112,6 +138,8 @@ status-preprod:
 	kubectl get services -n preprod
 	@echo "--- Deployments ---"
 	kubectl get deployments -n preprod
+	@echo "--- Ingress ---"
+	kubectl get ingress -n preprod
 
 status-all: status-production status-preprod
 
@@ -130,6 +158,27 @@ logs-preprod:
 		kubectl logs -l app=$$svc -n preprod --tail=30 2>/dev/null; \
 		echo ""; \
 	done
+
+# ─── Portainer ────────────────────────────────────────────────────────────────
+
+deploy-portainer:
+	@echo "=== Instalando Portainer ==="
+	@for f in portainer/*.yaml; do \
+		kubectl apply -f $$f; \
+	done
+	@echo ""
+	@echo "Portainer desplegado."
+	@echo "Ejecuta 'make portainer-url' para la URL de acceso."
+	@echo "IMPORTANTE: tienes 5 minutos para crear el usuario admin en la UI."
+
+portainer-url:
+	@echo "Portainer: http://portainer.localhost"
+
+clean-portainer:
+	@echo "=== Eliminando Portainer ==="
+	kubectl delete -f portainer/ --ignore-not-found=true
+	kubectl delete namespace portainer --ignore-not-found=true
+	@echo "Portainer eliminado."
 
 # ─── Clean ────────────────────────────────────────────────────────────────────
 
