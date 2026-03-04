@@ -32,56 +32,94 @@ docker-compose down
 
 ## Despliegue en Kubernetes
 
-Dos entornos independientes desplegados en namespaces separados:
+Dos entornos independientes desplegados en namespaces separados, accesibles vía Nginx Ingress Controller:
 
 | Entorno | URL |
 |---|---|
-| Producción | http://localhost:30080 |
-| Preproducción | http://localhost:30081 |
+| Producción | http://production.localhost |
+| Preproducción | http://preprod.localhost |
+| Portainer | http://portainer.localhost |
+
+Los datos de producción persisten entre reinicios. Los datos de preproducción son efímeros (se eliminan al apagar los pods).
 
 ### Configuración previa
 
-Editar `k8s/Makefile` y establecer el usuario de Docker Hub:
+**1. Editar `k8s/Makefile`** y establecer el usuario de Docker Hub:
 
 ```makefile
 DOCKER_USER = tu-usuario-dockerhub
 ```
 
-### Comandos
+**2. Añadir entradas a `/etc/hosts`** (solo entorno local):
+
+```
+127.0.0.1 production.localhost preprod.localhost portainer.localhost
+```
+
+### Primera vez (orden de ejecución)
 
 ```bash
 cd k8s/
 
+make push-all                  # Construir y subir imágenes a Docker Hub
+make deploy-ingress-controller # Instalar Nginx Ingress Controller
+make deploy-all                # Desplegar producción y preproducción
+make deploy-portainer          # Instalar Portainer (opcional)
+```
+
+### Comandos
+
+```bash
+make build-all         # Construir imágenes Docker
 make push-all          # Construir y subir imágenes a Docker Hub
+
 make deploy-all        # Desplegar ambos entornos
-make status-all        # Ver estado de los pods y servicios
+make deploy-production # Desplegar solo producción
+make deploy-preprod    # Desplegar solo preproducción
+
+make status-all        # Ver estado de pods, servicios e ingress
 make logs-production   # Ver logs del entorno de producción
 make logs-preprod      # Ver logs del entorno de preproducción
+
 make clean-all         # Eliminar ambos entornos
+make clean-production  # Eliminar solo producción
+make clean-preprod     # Eliminar solo preproducción
+
+make deploy-portainer  # Instalar Portainer
+make portainer-url     # Mostrar URL de Portainer
+make clean-portainer   # Eliminar Portainer
 ```
+
+### Portainer
+
+Portainer actúa como panel de control del clúster con autenticación usuario/contraseña.
+
+Tras ejecutar `make deploy-portainer`, acceder a http://portainer.localhost y crear el usuario administrador en los primeros 5 minutos.
 
 ### Estructura de manifests
 
 ```
 k8s/
 ├── Makefile
-├── production/        # Namespace: production — NodePort 30080
+├── production/        # Namespace: production
 │   ├── 00-namespace.yaml
-│   ├── 01-mongodb-pv.yaml
+│   ├── 01-mongodb-pv.yaml       # PersistentVolume (datos persistentes)
 │   ├── 02-mongodb-pvc.yaml
 │   ├── 03-mongodb-deployment.yaml
 │   ├── 04-mongodb-service.yaml
-│   ├── 05-employees-api-deployment.yaml
-│   ├── 06-employees-api-service.yaml
-│   ├── 07-flights-api-deployment.yaml
-│   ├── 08-flights-api-service.yaml
-│   ├── 09-spacemissions-api-deployment.yaml
-│   ├── 10-spacemissions-api-service.yaml
-│   ├── 11-search-api-deployment.yaml
-│   ├── 12-search-api-service.yaml
-│   ├── 13-frontend-configmap.yaml
-│   ├── 14-frontend-deployment.yaml
-│   └── 15-frontend-service.yaml
-└── preprod/           # Namespace: preprod — NodePort 30081
-    └── (misma estructura)
+│   ├── 05-15-*.yaml             # APIs, frontend (deployments + services)
+│   └── 16-ingress.yaml          # Ingress → production.localhost
+├── preprod/           # Namespace: preprod
+│   ├── 00-namespace.yaml
+│   ├── 03-mongodb-deployment.yaml  # emptyDir (datos efímeros)
+│   ├── 04-15-*.yaml             # APIs, frontend (deployments + services)
+│   └── 16-ingress.yaml          # Ingress → preprod.localhost
+└── portainer/         # Namespace: portainer
+    ├── 01-namespace.yaml
+    ├── 02-serviceaccount.yaml
+    ├── 03-clusterrolebinding.yaml
+    ├── 04-pvc.yaml
+    ├── 05-deployment.yaml
+    ├── 06-service.yaml
+    └── 07-ingress.yaml          # Ingress → portainer.localhost
 ```
