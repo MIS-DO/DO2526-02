@@ -10,7 +10,6 @@ spec:
     - name: http
       port: 80
       targetPort: 80
-      nodePort: 30081
   selector:
     app: frontend-pod
-  type: NodePort
+  type: ClusterIP
