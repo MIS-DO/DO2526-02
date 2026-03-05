@@ -4,6 +4,8 @@ services:
     container_name: mongo-unified
     ports:
       - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -101,3 +103,6 @@ services:
 networks:
   app-network:
     driver: bridge
+  
+volumes:
+  mongo-data:
