@@ -3,10 +3,17 @@ kind: Ingress
 metadata:
   name: frontend-ingress
   namespace: production
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: "nginx"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - prod.empleadomisionvuelo.app
+      secretName: prod-tls-secret
   rules:
-    - host: production.localhost
+    - host: prod.empleadomisionvuelo.app
       http:
         paths:
           - path: /

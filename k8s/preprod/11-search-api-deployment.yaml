@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: search-api-container
-          image: DOCKER_USER/search-api:latest
+          image: rgavira123/search-api:latest
           ports:
             - containerPort: 8080
           resources:
