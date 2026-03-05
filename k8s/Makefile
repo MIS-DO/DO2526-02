@@ -7,7 +7,7 @@
         clean-production clean-preprod clean-all
 
 # ─── Edita esta variable una sola vez ─────────────────────────────────────────
-DOCKER_USER  = rafapulido03
+DOCKER_USER  = rgavira123
 # ──────────────────────────────────────────────────────────────────────────────
 
 INGRESS_CONTROLLER_URL = https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/cloud/deploy.yaml

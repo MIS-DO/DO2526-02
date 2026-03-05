@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend-container
-          image: DOCKER_USER/do2526-frontend:latest
+          image: rgavira123/do2526-frontend:latest
           ports:
             - containerPort: 80
           volumeMounts:

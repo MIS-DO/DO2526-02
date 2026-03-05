@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: spacemissions-api-container
-          image: DOCKER_USER/spacemissions-api:latest
+          image: rgavira123/spacemissions-api:latest
           ports:
             - containerPort: 8080
           env:

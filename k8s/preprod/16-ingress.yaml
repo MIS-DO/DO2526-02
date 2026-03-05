@@ -1,12 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontend-ingress
+  name: frontend-ingress-dev
   namespace: preprod
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: "nginx"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - dev.empleadomisionvuelo.app
+      secretName: dev-tls-secret
   rules:
-    - host: preprod.localhost
+    - host: dev.empleadomisionvuelo.app
       http:
         paths:
           - path: /

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: employees-api-container
-          image: DOCKER_USER/employees-api:latest
+          image: rgavira123/employees-api:latest
           ports:
             - containerPort: 8080
           env:

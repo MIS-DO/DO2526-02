@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: flights-api-container
-          image: DOCKER_USER/flights-api:latest
+          image: rgavira123/flights-api:latest
           ports:
             - containerPort: 8080
           env:
