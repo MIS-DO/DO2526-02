@@ -63,6 +63,7 @@ cd k8s/
 
 make push-all                  # Construir y subir imágenes a Docker Hub
 make deploy-ingress-controller # Instalar Nginx Ingress Controller
+make deploy-metrics-server     # Instalar Metrics Server (necesario para HPA / Nivel A+)
 make deploy-all                # Desplegar producción y preproducción
 make deploy-portainer          # Instalar Portainer (opcional)
 ```
@@ -122,4 +123,24 @@ k8s/
     ├── 05-deployment.yaml
     ├── 06-service.yaml
     └── 07-ingress.yaml          # Ingress → portainer.localhost
+```
+
+### Nivel A+ (Autoescalado - HPA)
+
+Se ha implementado **Horizontal Pod Autoscaler (HPA)** para todos los microservicios (Backend APIs y Frontend) en los entornos de Producción y Preproducción. 
+
+Para que el autoescalado pueda tomar decisiones basadas en uso de CPU, se han establecido los límites de recursos (`resources.requests` y `resources.limits`) en cada *Deployment*.
+
+**Requisito previo:** Para que HPA funcione, es obligatorio que Metrics Server esté instalado en el cluster:
+```bash
+make deploy-metrics-server 
+```
+*(Este comando incluye un parche automático para permitir el flujo sin certificados TLS, necesario en entornos locales).*
+
+Si un Pod supera el **70% de utilización** de CPU sobre sus límites solicitados, el HPA levantará automáticamente nuevas réplicas (hasta un máximo de 3) para equilibrar la carga. Cuando el tráfico descienda, las réplicas volverán a reducirse al mínimo (1).
+
+Puedes ver el estado de tus HPA (y su uso de CPU actual respecto al objetivo) ejecutando:
+```bash
+make status-production
+make status-preprod
 ```

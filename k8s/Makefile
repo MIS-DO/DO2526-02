@@ -7,10 +7,11 @@
         clean-production clean-preprod clean-all
 
 # ─── Edita esta variable una sola vez ─────────────────────────────────────────
-DOCKER_USER  = rafapulido03
+DOCKER_USER  = rgavira123
 # ──────────────────────────────────────────────────────────────────────────────
 
 INGRESS_CONTROLLER_URL = https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/cloud/deploy.yaml
+METRICS_SERVER_URL = https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
 help:
 	@echo "Despliegue de DO2526-02 en Kubernetes - Dos entornos"
@@ -21,6 +22,7 @@ help:
 	@echo ""
 	@echo "Despliegue (primera vez: instalar el controlador primero):"
 	@echo "  make deploy-ingress-controller   - Instalar nginx Ingress Controller"
+	@echo "  make deploy-metrics-server       - Instalar Metrics Server (necesario para HPA)"
 	@echo "  make deploy-production           - Desplegar entorno de produccion"
 	@echo "  make deploy-preprod              - Desplegar entorno de preproduccion"
 	@echo "  make deploy-all                  - Desplegar ambos entornos"
@@ -89,6 +91,13 @@ deploy-ingress-controller:
 	@echo "Recuerda añadir a /etc/hosts:"
 	@echo "  127.0.0.1 production.localhost preprod.localhost portainer.localhost"
 
+deploy-metrics-server:
+	@echo "=== Instalando Metrics Server ==="
+	kubectl apply -f $(METRICS_SERVER_URL)
+	@echo "Parcheando Metrics Server para permitir TLS inseguro (necesario en local)..."
+	kubectl patch deployment metrics-server -n kube-system --type 'json' -p '[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+	@echo "Metrics Server instalado."
+
 # ─── Deploy ───────────────────────────────────────────────────────────────────
 
 deploy-production:
@@ -125,6 +134,8 @@ status-production:
 	kubectl get services -n production
 	@echo "--- Deployments ---"
 	kubectl get deployments -n production
+	@echo "--- HorizontalPodAutoscalers (HPA) ---"
+	kubectl get hpa -n production
 	@echo "--- Ingress ---"
 	kubectl get ingress -n production
 	@echo "--- PV / PVC ---"
@@ -138,6 +149,8 @@ status-preprod:
 	kubectl get services -n preprod
 	@echo "--- Deployments ---"
 	kubectl get deployments -n preprod
+	@echo "--- HorizontalPodAutoscalers (HPA) ---"
+	kubectl get hpa -n preprod
 	@echo "--- Ingress ---"
 	kubectl get ingress -n preprod
 
