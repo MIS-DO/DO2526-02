@@ -106,28 +106,7 @@ body {
   font-weight: 400;
 }
 
-.header-links {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 
-.swagger-link {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 0.78rem;
-  padding: 6px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  transition: var(--transition);
-  white-space: nowrap;
-}
-
-.swagger-link:hover {
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-  background: rgba(79, 140, 255, 0.08);
-}
 
 /* ===== Tab Navigation ===== */
 .tab-nav {
@@ -666,9 +645,7 @@ body {
     align-items: flex-start;
   }
 
-  .header-links {
-    width: 100%;
-  }
+
 
   .tab-nav {
     padding: 0 16px;
