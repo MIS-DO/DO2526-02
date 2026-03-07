@@ -28,10 +28,12 @@ spec:
               cpu: 100m
               memory: 128Mi
           env:
-            - name: MONGODB_URI
-              value: mongodb://mongodb-service:27017
-            - name: DB_NAME
-              value: do2526
+            - name: EMPLOYEES_API_URL
+              value: http://employees-api:8080
+            - name: FLIGHTS_API_URL
+              value: http://flights-api:8080
+            - name: SPACEMISSIONS_API_URL
+              value: http://spacemissions-api:8080
             - name: PORT
               value: "8080"
             - name: NODE_ENV

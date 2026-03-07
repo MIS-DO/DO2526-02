@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient } from "mongodb";
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -8,23 +7,10 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-const url = process.env.MONGODB_URI || "mongodb://localhost:27017";
-const dbName = process.env.DB_NAME || "do2526";
-
-const client = new MongoClient(url);
-
-let db;
-
-async function connectDB() {
-  try {
-    await client.connect();
-    db = client.db(dbName);
-    console.log("Connected successfully to DB for search API");
-  } catch (error) {
-    console.error("DB connection error:", error);
-    process.exit(1);
-  }
-}
+// URLs de las APIs (configurables por variables de entorno)
+const EMPLOYEES_API_URL = process.env.EMPLOYEES_API_URL || "http://localhost:8001";
+const FLIGHTS_API_URL = process.env.FLIGHTS_API_URL || "http://localhost:8002";
+const SPACEMISSIONS_API_URL = process.env.SPACEMISSIONS_API_URL || "http://localhost:8003";
 
 app.get("/api/v1/search", async (req, res) => {
   const { city } = req.query;
@@ -34,25 +20,28 @@ app.get("/api/v1/search", async (req, res) => {
   }
 
   try {
-    // We are going to perform EXACT case-insensitive regex searches
     const escapedCity = city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const queryRegex = new RegExp(`^${escapedCity}$`, "i");
+    const cityRegex = new RegExp(`^${escapedCity}$`, "i");
 
-    // Employees has the 'city' property directly
-    const employees = await db.collection("employees").find({ city: queryRegex }).toArray();
+    // Llamadas paralelas a las 3 APIs
+    const [employeesRes, flightsRes, spacemissionsRes] = await Promise.all([
+      fetch(`${EMPLOYEES_API_URL}/api/v1/employees`),
+      fetch(`${FLIGHTS_API_URL}/api/v1/flight`),
+      fetch(`${SPACEMISSIONS_API_URL}/api/v1/spacemissions`)
+    ]);
 
-    // Flights have 'departure.city' and 'arrival.city'
-    const flights = await db.collection("flights").find({
-      $or: [
-        { "departure.city": queryRegex },
-        { "arrival.city": queryRegex }
-      ]
-    }).toArray();
+    const allEmployees = await employeesRes.json();
+    const allFlights = await flightsRes.json();
+    const allSpacemissions = await spacemissionsRes.json();
 
-    // SpaceMissions have 'launch.city'
-    const spacemissions = await db.collection("spacemissions").find({
-      "launch.city": queryRegex
-    }).toArray();
+    // Filtrar por ciudad en memoria (misma lógica que antes)
+    const employees = allEmployees.filter(e => cityRegex.test(e.city));
+    const flights = allFlights.filter(f =>
+      cityRegex.test(f.departure?.city) || cityRegex.test(f.arrival?.city)
+    );
+    const spacemissions = allSpacemissions.filter(s =>
+      cityRegex.test(s.launch?.city)
+    );
 
     res.json({
       query: city,
@@ -63,13 +52,11 @@ app.get("/api/v1/search", async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error during search:", err.message);
     res.status(500).json({ error: "Error during search" });
   }
 });
 
-connectDB().then(() => {
-  app.listen(port, () => {
-    console.log(`Search API listening on port ${port}`);
-  });
+app.listen(port, () => {
+  console.log(`Search API listening on port ${port}`);
 });
