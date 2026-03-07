@@ -72,13 +72,15 @@ services:
     ports:
       - "8004:8080"
     environment:
-      - MONGODB_URI=mongodb://mongo:27017
-      - DB_NAME=do2526
+      - EMPLOYEES_API_URL=http://employees-api:8080
+      - FLIGHTS_API_URL=http://flights-api:8080
+      - SPACEMISSIONS_API_URL=http://spacemissions-api:8080
       - PORT=8080
       - NODE_ENV=development
     depends_on:
-      mongo:
-        condition: service_healthy
+      - employees-api
+      - flights-api
+      - spacemissions-api
     restart: unless-stopped
     networks:
       - app-network
