@@ -9,6 +9,7 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
+      nodePort: 31003
   selector:
     app: spacemissions-api-pod
-  type: ClusterIP
+  type: NodePort
